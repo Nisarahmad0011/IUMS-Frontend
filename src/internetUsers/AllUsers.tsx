@@ -75,6 +75,7 @@ export default function InternetUsersList(): JSX.Element {
       setError(null);
       try {
         const response = await axios.get<InternetUser[]>(`${route}/internet`);
+        console.log("fetched data",response)
         setUsers(response.data);
       } catch (err) {
         setError("Failed to fetch users. Please try again later.");
