@@ -17,6 +17,7 @@ export type InternetUser = {
   status?: "active" | "deactive" | 1 | 0;
   violations?: "0" | "1" | "2";
   comment?: string;
+  violation_type?: string;
 };
 
 
@@ -35,8 +36,9 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  isAdmin: boolean;
+  role_name: string;
   password?: string;
+  isAdmin?: boolean;
 }
 
 export interface ViolationProps {
@@ -52,7 +54,6 @@ export interface ViolationProps {
   comment: string;
   
 }
-
 
 export type FormState = {
   name: string;

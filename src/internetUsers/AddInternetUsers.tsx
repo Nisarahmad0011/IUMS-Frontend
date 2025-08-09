@@ -12,6 +12,7 @@ import { Step3 } from "./steps/step3";
 import { Step4 } from "./steps/step4";
 import { stepTitles } from "./steps/steps_titles";
 import { route } from "../config";
+import Swal from 'sweetalert2'
 
 export default function InternetUserAddForm(): JSX.Element {
   const [form, setForm] = useState<FormState>({
@@ -34,53 +35,55 @@ export default function InternetUserAddForm(): JSX.Element {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [directorateOptions, setDirectorateOptions] = useState<string[]>([]);
-  const [deputyMinistryOptions, setDeputyMinistryOptions] = useState<string[]>([]);
-  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<{id: string, name: string}[]>([]);  
+  const [, setDeputyMinistryOptions] = useState<string[]>([]);
+  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<{ id: string, name: string }[]>([]);
 
-useEffect(() => {
-  const fetchOptions = async () => {
-    try {
-      const [dirRes, empTypeRes] = await Promise.all([
-        axios.get(`${route}/directorate`),
-        axios.get(`${route}/employment-type`),
-      ]);
 
-      // Directorates are those with directorate_type_id === 2
-      const directorates = dirRes.data.filter((d: any) => d.directorate_type_id === 2);
 
-      // Deputy Ministries are those with directorate_type_id === 1
-      const deputyMinistries = dirRes.data.filter((d: any) => d.directorate_type_id === 1);
 
-      setDirectorateOptions(directorates);
-      setDeputyMinistryOptions(deputyMinistries);
-      setEmploymentTypeOptions(empTypeRes.data);
-    } catch (error) {
-      console.error("❌ Error fetching select options", error);
-    }
-  };
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [dirRes, empTypeRes] = await Promise.all([
+          axios.get(`${route}/directorate`),
+          axios.get(`${route}/employment-type`),
+        ]);
 
-  fetchOptions();
-}, []);
+        console.log(dirRes.data, 'Naweed');
 
-    console.log("Form State:", form);
-    const handleChange = (
-      e:
-        | React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-        | { target: { name: string; value: string } }
-    ) => {
-      setForm((prev) => ({
-        ...prev,
-        [e.target.name]: e.target.value.toString(), // <--- force string here
-      }));
+        // Directorates are those with directorate_type_id === 2
+        const directorates = dirRes.data.filter((d: any) => d.directorate_type_id === 2);
+
+        // Deputy Ministries are those with directorate_type_id === 1
+        const deputyMinistries = dirRes.data.filter((d: any) => d.directorate_type_id === 1);
+
+        setDirectorateOptions(directorates);
+        setDeputyMinistryOptions(deputyMinistries);
+        setEmploymentTypeOptions(empTypeRes.data);
+      } catch (error) {
+        console.error("❌ Error fetching select options", error);
+      }
     };
 
+    fetchOptions();
+  }, []);
+
+  console.log("Form State:", form);
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string } }
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   function validateStep(step: number): boolean {
     switch (step) {
       case 0:
         return (
           form.name.trim() !== "" &&
-          form.username.trim() !== "" 
+          form.username.trim() !== ""
         );
       case 1:
         return (
@@ -91,9 +94,9 @@ useEffect(() => {
       case 2:
         return (
           form.device_limit.trim() !== "" &&
-          form.device_type.trim() !== ""
+          form.device_type !== ""
         );
-        
+
       default:
         return true;
     }
@@ -101,8 +104,12 @@ useEffect(() => {
 
   const nextStep = () => {
     if (!validateStep(currentStep)) {
-      alert("Please fill all required fields in this step.");
-      return;
+      Swal.fire({
+        icon: "error",
+        title: "Required Fields!!!",
+        text: "Please fill all the required fields!",
+        footer: 'Press Okay!'
+      }); return;
     }
     setCurrentStep((prev) => Math.min(prev + 1, stepTitles.length - 1));
   };
@@ -113,37 +120,46 @@ useEffect(() => {
 
   const handleSubmit = async () => {
     if (!validateStep(2)) {
-      alert("Please fill all required fields before submitting.");
-      setCurrentStep(2);
+      Swal.fire({
+        icon: "error",
+        title: "Required Fields!!!",
+        text: "Please fill all the required fields!",
+        footer: 'Press Okay!'
+      }); setCurrentStep(2);
       return;
     }
 
     setLoading(true);
     try {
-    const submitData = {
-      name: form.name,
-      lastname: form.last_name,
-      username: form.username,
-      email: form.email,
-      phone: form.phone,
-      status: parseInt(form.status),
-      directorate_id: parseInt(form.directorate),
-      employee_type_id: parseInt(form.employment_type),
-      position: form.position,
-      device_limit: form.device_limit,
-      mac_address: form.mac_address || null,
-    };
+      const submitData = {
+        name: form.name,
+        lastname: form.last_name,
+        username: form.username,
+        email: form.email,
+        phone: form.phone,
+        status: parseInt(form.status),
+        directorate_id: parseInt(form.directorate),
+        employee_type_id: parseInt(form.employment_type),
+        position: form.position,
+        device_limit: form.device_limit,
+        mac_address: form.mac_address || null,
+        device_type_id: parseInt(form.device_type),
+      };
 
       await axios.post(`${route}/internet`, submitData);
-      alert("✅ User added successfully!");
-      setCurrentStep(0);
+      Swal.fire({
+        icon: "success",
+        title: "User Created!",
+        text: "Internet User Was Created Successfully!",
+        footer: 'Press Okay!'
+      }); setCurrentStep(0);
       navigate("/");
     } catch (error: any) {
-  console.error("Error adding user:", error);
-  console.error("Error response:", error.response?.data);
-  console.error("Error status:", error.response?.status);
-  alert("❌ Something went wrong while adding user.");
-} finally {
+      console.error("Error adding user:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      alert("❌ Something went wrong while adding user.");
+    } finally {
       setLoading(false);
     }
   };
@@ -210,10 +226,10 @@ useEffect(() => {
                     case 0:
                       return <Step1 form={form} onChange={handleChange} />;
                     case 1:
-                      return <Step2 form={form} 
-                      directorateOptions={directorateOptions}
-                      employmentTypeOptions={employmentTypeOptions}
-                      onChange={handleChange} />;
+                      return <Step2 form={form}
+                        directorateOptions={directorateOptions}
+                        employmentTypeOptions={employmentTypeOptions}
+                        onChange={handleChange} />;
                     case 2:
                       return <Step3 form={form} onChange={handleChange} />;
                     case 3:

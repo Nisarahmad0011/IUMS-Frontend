@@ -13,7 +13,7 @@ import { route } from "../config";
 const headers = [
   "Name", "Username", "Last Name", "Email", "Phone", "Employment Type",
   "Directorate", "Deputy Ministry", "Position", "Device Limit", "Device Type",
-  "MAC Address", "Status", "Violations", "Comment", "Actions"
+  "MAC Address", "Status", "Violations","Violation Type", "Comment", "Actions"
 ];
 
 export default function InternetUsersList(): JSX.Element {
@@ -62,10 +62,12 @@ export default function InternetUsersList(): JSX.Element {
 
   const filteredDeputyMinistriesEdit =
     queryDeputyMinistryEdit === ""
-      ? deputyMinistryOptions
-      : deputyMinistryOptions.filter((dm) =>
-        dm.name.toLowerCase().includes(queryDeputyMinistryEdit.toLowerCase())
-      );
+      ? deputyMinistryOptions.filter(dm => dm.id >= 1 && dm.id <= 5)
+      : deputyMinistryOptions
+        .filter(dm => dm.id >= 1 && dm.id <= 5)
+        .filter((dm) =>
+          dm.name.toLowerCase().includes(queryDeputyMinistryEdit.toLowerCase())
+        );
 
 
   useEffect(() => {
@@ -238,7 +240,9 @@ export default function InternetUsersList(): JSX.Element {
 
         <div className="flex gap-4 mb-4 mt-5 justify-center items-center">
           <UserFilters
-            deputyMinistryOptions={deputyMinistryOptions.map(dm => ({ ...dm, id: String(dm.id) }))}
+            deputyMinistryOptions={deputyMinistryOptions
+              .filter(dm => dm.id >= 1 && dm.id <= 5)
+              .map(dm => ({ ...dm, id: String(dm.id) }))}
             directorateOptions={directorateOptions.map(dir => ({ ...dir, id: String(dir.id) }))}
             selectedDeputyMinistry={selectedDeputyMinistry}
             setSelectedDeputyMinistry={setSelectedDeputyMinistry}
@@ -299,7 +303,7 @@ export default function InternetUsersList(): JSX.Element {
                     .filter((user) =>
                       (selectedDeputyMinistry === "" || user.deputy === selectedDeputyMinistry) &&
                       (selectedDirectorate === "" || user.directorate === selectedDirectorate) &&
-                      (selectedStatus === "" || user.status === selectedStatus) &&
+                      (selectedStatus === "" || (selectedStatus === "active" && user.status === 1) || (selectedStatus === "deactive" && user.status === 0)) &&
                       (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         user.phone.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -341,10 +345,10 @@ export default function InternetUsersList(): JSX.Element {
                           <td className="px-3 py-2 text-gray-700 text-[10px]">{user.employment_type || "-"}</td>
 
                           {/* Directorate */}
-                          <td className="px-3 py-2  text-gray-700 text-[9px]">{user.directorate}</td>
+                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.directorate}</td>
 
                           {/* Deputy Ministry */}
-                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.deputy}</td>
+                          <td className="px-3 py-2  text-gray-700 text-[9px]">{user.deputy}</td>
 
                           <td className="px-3 py-2 text-gray-700 text-[8px]">{user.position}</td>
 
@@ -355,10 +359,15 @@ export default function InternetUsersList(): JSX.Element {
                           <td className="px-3 py-2 text-gray-700 text-[8px]">{user.mac_address}</td>
 
                           {/* Status */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.status || "-"}</td>
+                          <td className="px-3 py-2 text-gray-700 text-[10px]">
+                            {user.status === 1 ? "active" : user.status === 0 ? "deactive" : "-"}
+                          </td>
 
                           {/* Violations */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violations || "0"}</td>
+                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violations}</td>
+
+                          {/* Violation type */}
+                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violation_type}</td>
 
                           {/* Comment */}
                           <td className="px-3 py-2 text-gray-700 text-[10px] truncate max-w-[120px]">
