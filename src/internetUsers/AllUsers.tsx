@@ -13,7 +13,7 @@ import { route } from "../config";
 const headers = [
   "Name", "Username", "Last Name", "Email", "Phone", "Employment Type",
   "Directorate", "Deputy Ministry", "Position", "Device Limit", "Device Type",
-  "MAC Address", "Status", "Violations","Violation Type", "Comment", "Actions"
+  "MAC Address", "Status", "Violations Count", "Violation Type", "Comment", "Actions"
 ];
 
 export default function InternetUsersList(): JSX.Element {
@@ -34,6 +34,8 @@ export default function InternetUsersList(): JSX.Element {
   const [selectedDeputyMinistryEdit, setSelectedDeputyMinistryEdit] = useState<{ id: number; name: string } | null>(null);
   const [queryDeputyMinistryEdit, setQueryDeputyMinistryEdit] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+
+
   const totalUsers = users.length;
 
   const activeUsers = users.filter((user) => user.status === 1).length;
@@ -112,7 +114,7 @@ export default function InternetUsersList(): JSX.Element {
     setEditForm({
       ...user,
       status: user.status || "active",
-      violations: user.violations || "0",
+      violations_count: user.violations_count || "0",
       comment: user.comment || "No comment"
     });
 
@@ -174,11 +176,11 @@ export default function InternetUsersList(): JSX.Element {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <User className="w-6 h-6 text-blue-400" />
-                <span className="text-blue-400 font-semibold text-sm">Total Users</span>
+                <span className="text-blue-400 text-sm">Total Users</span>
               </div>
               <div className="text-blue-400 text-xs uppercase tracking-wider">Summary</div>
             </div>
-            <div className="text-3xl font-bold text-blue-400 text-center">{totalUsers}</div>
+            <div className="text-4xl font-bold text-blue-400 text-center mt-10">{totalUsers}</div>
           </div>
           {/* 🟦 Active / Deactive */}
           <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group">
@@ -227,7 +229,7 @@ export default function InternetUsersList(): JSX.Element {
               </div>
               <div className="text-blue-400 text-xs uppercase tracking-wider">Groups</div>
             </div>
-            <ul className="space-y-1 text-sm text-blue-400 max-h-32 overflow-auto pr-1">
+            <ul className="space-y-1 text-sm text-blue-400 max-h-32 overflow-auto pr-1 text-[10px]">
               {Object.entries(deputyMinistryCounts).map(([name, count]) => (
                 <li key={name} className="flex justify-between">
                   <span>{name}</span>
@@ -306,11 +308,15 @@ export default function InternetUsersList(): JSX.Element {
                       (selectedStatus === "" || (selectedStatus === "active" && user.status === 1) || (selectedStatus === "deactive" && user.status === 0)) &&
                       (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        user.phone.toLowerCase().includes(searchTerm.toLowerCase()))
-                    )
+                        user.phone.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                      user.employment_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      user.device_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      user.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      (user.violation_type && user.violation_type.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                      String(user.violations_count).toLowerCase().includes(searchTerm.toLowerCase()))
                     .map((user, idx) => {
-                      const isRedCard = user.violations === "2";
-                      const isYellowCard = user.violations === "1";
+                      const isRedCard = user.violations_count === "2";
+                      const isYellowCard = user.violations_count === "1";
 
                       return (
                         <tr
@@ -364,7 +370,7 @@ export default function InternetUsersList(): JSX.Element {
                           </td>
 
                           {/* Violations */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violations}</td>
+                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violations_count}</td>
 
                           {/* Violation type */}
                           <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violation_type}</td>
@@ -585,7 +591,7 @@ export default function InternetUsersList(): JSX.Element {
                   <label className="block text-sm font-medium text-gray-700">Violations</label>
                   <select
                     name="violations"
-                    value={editForm.violations || "0"}
+                    value={editForm.violations_count || "0"}
                     onChange={handleEditChange}
                     className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none 
               focus:ring-2 focus:ring-blue-400"
