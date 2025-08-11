@@ -11,10 +11,11 @@ import type { InternetUser } from "../types/types";
 import { route } from "../config";
 
 const headers = [
-  "Name", "Username", "Last Name", "Email", "Phone", "Employment Type",
-  "Directorate", "Deputy Ministry", "Position", "Device Limit", "Device Type",
+  "Phone", "Employment Type", "Directorate", "Deputy Ministry", "Position", "Device Limit", "Device Type", "Group Type",
   "MAC Address", "Status", "Violations Count", "Violation Type", "Comment", "Actions"
 ];
+
+const fixedHeaders = ["Name", "Last Name", "Username", "Email"];
 
 export default function InternetUsersList(): JSX.Element {
   const [users, setUsers] = useState<InternetUser[]>([]);
@@ -34,10 +35,11 @@ export default function InternetUsersList(): JSX.Element {
   const [selectedDeputyMinistryEdit, setSelectedDeputyMinistryEdit] = useState<{ id: number; name: string } | null>(null);
   const [queryDeputyMinistryEdit, setQueryDeputyMinistryEdit] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [expanded, setExpanded] = useState(false);
+
 
 
   const totalUsers = users.length;
-
   const activeUsers = users.filter((user) => user.status === 1).length;
   const deactiveUsers = users.filter((user) => user.status === 0).length;
 
@@ -260,7 +262,7 @@ export default function InternetUsersList(): JSX.Element {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search users..."
-              className="w-100 px-4 py-2 pl-10 rounded-sm shadow-sm border border-blue-200 
+              className="w-80 px-4 py-2 pl-10 rounded-sm shadow-sm border border-blue-200 
                     focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm 
                     placeholder:text-blue-300 text-gray-700 
                     bg-white"
@@ -281,25 +283,76 @@ export default function InternetUsersList(): JSX.Element {
           <div className="overflow-x-auto rounded-sm 
           shadow-lg bg-white border 
           border-gray-200 max-w-full">
-            <div className="overflow-x-auto rounded-sm shadow-lg bg-white border border-white max-w-full">
+            <button
+              onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
+              className="
+                relative
+                w-full
+                px-6 py-2
+                text-sm font-semibold
+                text-white
+                bg-gradient-to-r from-blue-300 via-blue-200 to-gray-100
+                rounded-sm
+                overflow-hidden
+                shadow-lg
+                hover:from-blue-400 hover:via-blue-200 hover:to-gray-200
+                focus:outline-none focus:ring-opacity-50
+                transition
+                duration-300
+                ease-in-out
+              "
+            >
+              {/* متن دکمه */}
+              {expanded ? "⯅ Click To Collapse ⯅" : "⯆ Click To Expand ⯆"}
+
+              {/* خط شمشیر متحرک */}
+              <span className="
+                absolute top-0 left-0 w-full h-full pointer-events-none
+                before:content-['']
+                before:absolute before:top-0 before:left-[-100%] before:w-[30%] before:h-full
+                before:bg-white before:opacity-20 before:transform before:-skew-x-12
+                before:transition-transform before:duration-500 before:ease-in-out
+                hover:before:left-full
+              "></span>
+            </button>
+
+
+            <div className="overflow-x-auto rounded-sm shadow-lg bg-white border border-white max-w-full scrollbar-custom">
               <table className="table-auto w-full text-left text-sm">
                 {/* Table Head */}
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs uppercase 
               tracking-wider select-none rounded-t-xl">
-                    {headers.map((header) => (
+                    {fixedHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 border-r last:border-r-0 bg-blue-300 text-[10px] font-semibold"
+                        className="px-3 py-2 border-r bg-blue-300 text-[10px] font-semibold"
                         style={{ textShadow: "0 1px 1px rgba(0,0,0,0.15)" }}
                       >
                         {header}
                       </th>
+
                     ))}
+
+                    {expanded && (
+                      <>
+                        {headers.map((header) => (
+                          <th
+                            key={header}
+                            className="px-3 py-2 border-r last:border-r-0 bg-blue-300 text-[10px] font-semibold"
+                            style={{ textShadow: "0 1px 1px rgba(0,0,0,0.15)" }}
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </>
+                    )}
                   </tr>
                 </thead>
 
                 {/* Table Body */}
+
                 <tbody>
                   {users
                     .filter((user) =>
@@ -336,69 +389,74 @@ export default function InternetUsersList(): JSX.Element {
                             {isRedCard && <span className="ml-1">🟥</span>}
                           </td>
 
-                          {/* Username */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.username}</td>
-
                           {/* Last Name */}
                           <td className="px-3 py-2 text-gray-700 text-[10px]">{user.lastname}</td>
 
+                          {/* Username */}
+                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.username}</td>
+
                           {/* email */}
                           <td className="px-3 py-2 text-gray-700 text-[10px]">{user.email}</td>
+                          {expanded && (
+                            <>
+                              {/* Phone */}
+                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.phone}</td>
 
-                          {/* Phone */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.phone}</td>
+                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.employment_type || "-"}</td>
 
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.employment_type || "-"}</td>
+                              {/* Directorate */}
+                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.directorate}</td>
 
-                          {/* Directorate */}
-                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.directorate}</td>
+                              {/* Deputy Ministry */}
+                              <td className="px-3 py-2  text-gray-700 text-[9px]">{user.deputy}</td>
 
-                          {/* Deputy Ministry */}
-                          <td className="px-3 py-2  text-gray-700 text-[9px]">{user.deputy}</td>
+                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.position}</td>
 
-                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.position}</td>
+                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.device_limit}</td>
 
-                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.device_limit}</td>
+                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.device_type}</td>
 
-                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.device_type}</td>
+                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.groups}</td>
 
-                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.mac_address}</td>
+                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.mac_address}</td>
 
-                          {/* Status */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">
-                            {user.status === 1 ? "active" : user.status === 0 ? "deactive" : "-"}
-                          </td>
+                              {/* Status */}
+                              <td className="px-3 py-2 text-gray-700 text-[10px]">
+                                {user.status === 1 ? "active" : user.status === 0 ? "deactive" : "-"}
+                              </td>
 
-                          {/* Violations */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violations_count}</td>
+                              {/* Violations */}
+                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violations_count}</td>
 
-                          {/* Violation type */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violation_type}</td>
+                              {/* Violation type */}
+                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violation_type}</td>
 
-                          {/* Comment */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px] truncate max-w-[120px]">
-                            {user.comment || "-"}
-                          </td>
+                              {/* Comment */}
+                              <td className="px-3 py-2 text-gray-700 text-[10px] truncate max-w-[120px]">
+                                {user.comment || "-"}
+                              </td>
 
-                          {/* Actions */}
-                          <td className="px-3 py-2 text-blue-400 text-center">
-                            <div className="flex justify-center gap-2">
-                              <button
-                                onClick={() => handleEdit(user)}
-                                className="hover:text-blue-100"
-                                title="Edit"
-                              >
-                                <Edit className="w-5 h-5 hover:text-blue-300" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(user.id)}
-                                className="hover:text-blue-100"
-                                title="Delete"
-                              >
-                                <Trash className="w-5 h-5 hover:text-blue-300" />
-                              </button>
-                            </div>
-                          </td>
+                              {/* Actions */}
+                              <td className="px-3 py-2 text-blue-400 text-center">
+                                <div className="flex justify-center gap-2">
+                                  <button
+                                    onClick={() => handleEdit(user)}
+                                    className="hover:text-blue-100"
+                                    title="Edit"
+                                  >
+                                    <Edit className="w-5 h-5 hover:text-blue-300" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(user.id)}
+                                    className="hover:text-blue-100"
+                                    title="Delete"
+                                  >
+                                    <Trash className="w-5 h-5 hover:text-blue-300" />
+                                  </button>
+                                </div>
+                              </td>
+                            </>
+                          )}
                         </tr>
                       );
                     })}

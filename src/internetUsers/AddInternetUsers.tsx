@@ -26,6 +26,7 @@ export default function InternetUserAddForm(): JSX.Element {
     deputyMinistry: "",
     position: "",
     device_limit: "",
+    group_id: 1,
     device_type: "",
     mac_address: "",
     status: "1",
@@ -49,8 +50,6 @@ export default function InternetUserAddForm(): JSX.Element {
           axios.get(`${route}/employment-type`),
         ]);
 
-        console.log(dirRes.data, 'Naweed');
-
         // Directorates are those with directorate_type_id === 2
         const directorates = dirRes.data.filter((d: any) => d.directorate_type_id === 2);
 
@@ -72,6 +71,53 @@ export default function InternetUserAddForm(): JSX.Element {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | { target: { name: string; value: string } }
   ) => {
+    if (e.target.name === "phone") {
+      let phone = e.target.value;
+
+      // حذف فاصله‌ها و کاراکترهای غیرمجاز
+      phone = phone.replace(/\s+/g, "").replace(/[^0-9+]/g, "");
+
+      // اگر با +93 شروع نمی‌شود، اضافه‌اش کن
+      if (!phone.startsWith("+93")) {
+        // اگر کاربر صفر اول داده باشه، صفر رو حذف می‌کنیم
+        if (phone.startsWith("0")) {
+          phone = "+93" + phone.slice(1);
+        } else {
+          phone = "+93" + phone.replace(/^\+?93?/, "");
+        }
+      }
+
+      // محدود کردن طول به 12 رقم
+      if (phone.length > 12) {
+        phone = phone.slice(0, 12);
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        phone,
+      }));
+      return;
+    }
+
+    if (e.target.name === "mac_address") {
+      let mac = e.target.value
+        .toUpperCase() // حروف کوچک رو بزرگ کنه
+        .replace(/[^0-9A-F]/g, "") // فقط اعداد و حروف هگز بمانند
+        .match(/.{1,2}/g)?.join(":") || ""; // هر دو کاراکتر یک ":"
+
+      // طول نهایی رو محدود کنیم
+      if (mac.length > 17) {
+        mac = mac.slice(0, 17);
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        mac_address: mac,
+      }));
+      return;
+    }
+
+
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -144,6 +190,7 @@ export default function InternetUserAddForm(): JSX.Element {
         device_limit: form.device_limit,
         mac_address: form.mac_address || null,
         device_type_id: parseInt(form.device_type),
+        group_id: form.group_id,
       };
 
       await axios.post(`${route}/internet`, submitData);
@@ -196,11 +243,12 @@ export default function InternetUserAddForm(): JSX.Element {
           initial={false}
         >
           <motion.div
-            className="w-full max-w-lg bg-white shadow-2xl border border-gray-200 rounded-3xl px-10 py-12 relative z-10"
+            className="w-full max-w-7xl bg-white shadow-2xl border border-gray-200 rounded-3xl px-10 py-12 relative z-10"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
+
             <motion.h2
               className="text-3xl font-extrabold text-center text-gray-800 mb-6 tracking-tight"
               initial={{ opacity: 0, y: 20 }}
@@ -246,7 +294,7 @@ export default function InternetUserAddForm(): JSX.Element {
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="px-6 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                  className="bg-gradient-to-l from-red-400 to-gray-50 w-22"
                 >
                   Back
                 </button>
@@ -257,14 +305,14 @@ export default function InternetUserAddForm(): JSX.Element {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="px-6 py-2 rounded-xl bg-blue-400 text-white font-semibold hover:bg-indigo-700 transition"
+                  className="h-10 px-6 bg-gradient-to-r from-blue-300 to blue-200"
                 >
                   Next
                 </button>
               ) : (
-                <AnimatedSubmitButton onClick={handleSubmit} disabled={loading}>
+                <AnimatedSubmitButton onClick={handleSubmit} disabled={loading} className="h-10 px-6 bg-gradient-to-r from-blue-300 to blue-200" >
                   {loading ? (
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center gap-2">
                       <Spinner />
                       <span>Submitting...</span>
                     </div>

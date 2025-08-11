@@ -4,6 +4,7 @@ import {Settings, AlertOctagon, Users, LogOut, ChevronDown, ChevronUp
 import { motion } from "framer-motion";
 import { useState, type JSX } from "react";
 import axios from "axios";
+import { route } from "../config";
 
 export default function GradientSidebar(): JSX.Element {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const logout = async () => {
 
   try {
     await axios.post(
-      "http://localhost:8000/api/logout",
+      `${route}/logout`,
       {id:user_id},
       {
         headers: {
@@ -49,7 +50,7 @@ const logout = async () => {
   return (
     <aside className="w-64 min-h-screen bg-blue-400 text-white flex flex-col">
       <div className="flex items-center justify-center flex-col py-6 px-4">
-        <img src="moph.jpeg" className="rounded-full w-30 border-1" />
+        <img src="moph.png" className="rounded-full w-30" />
         <h1 className="text-center mt-5">IUMS</h1>
       </div>
 

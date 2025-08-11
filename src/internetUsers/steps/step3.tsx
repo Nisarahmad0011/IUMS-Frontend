@@ -1,10 +1,11 @@
-import { Cpu, Hash } from "lucide-react";
+import { Cpu, Group, Hash, Laptop } from "lucide-react";
 import type { FormState } from "../../types/types";
 import { InputField } from "./InputField";
 import { useEffect, useState, type JSX } from "react";
 import { DeviceType, getDeviceTypeLabel } from "../../enums/device_type_enum";
 import axios from "axios";
 import { route } from "../../config";
+import { ApiDropdown } from "../../components/ApiDropDown";
 
 // Map device types to options format
 const deviceTypeOptions = [
@@ -52,38 +53,65 @@ export function Step3({ form, onChange }: {
     <div>
       <InputField
         label="Device Limit"
-        icon={<Hash className="w-5 h-5 text-gray-500" />}
+        icon={<Hash className="w-5 h-5 text-blue-400" />}
         name="device_limit"
         type="number"
         placeholder="Number of devices allowed"
         value={form.device_limit}
         onChange={onChange}
       />
+
+      <ApiDropdown
+        apiUrl={`${route}/groups`} // your actual API endpoint to fetch device types
+        label="Group Type"
+        name="group_id"
+        value={form.group_id}
+        onChange={onChange}
+        icon={<Group className="w-5 h-5 text-blue-400" />}
+        placeholder="Select Group Type"
+        className="mb-4"
+      // valueField and labelField default to "id" and "name", so no need to specify here if your API matches
+      />
+
       <div>
         <label className="block text-sm font-medium text-gray-700">Device Type</label>
-        <select
-          name="device_type"
-          value={form.device_type}
-          onChange={onChange}
-          className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="">Select Device Type</option>
-          {deviceTypeOptions.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative w-full">
+          <Laptop className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none" size={20} />
+          <select
+            name="device_type"
+            value={form.device_type}
+            onChange={onChange}
+            className="block w-full pl-10 pr-4 py-2 bg-gray-100 border border-gray-300 rounded-xl focus-within:ring-2 
+            focus-within:ring-blue-400 focus-within:ring-offset-1 transition"
+          >
+            <option value="">Select Device Type</option>
+            {deviceTypeOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       <InputField
         label="MAC Address"
-        icon={<Cpu className="w-5 h-5 text-gray-500" />}
+        icon={<Cpu className="w-5 h-5 text-blue-400" />}
         name="mac_address"
         type="text"
         placeholder="00:00:00:00:00:00"
         value={form.mac_address}
-        onChange={onChange}
+        onChange={(e) => {
+          let mac = e.target.value
+            .toUpperCase()
+            .replace(/[^0-9A-F]/g, "")     // only from 0 to 9 and A to F
+            .match(/.{1,2}/g)?.join(":") || ""; // after each two characters put : 
+
+          if (mac.length > 17) mac = mac.slice(0, 17); // طول بیش از حد نرود
+
+          onChange({ target: { name: "mac_address", value: mac } });
+        }}
       />
+
       {macError && <p className="text-red-600 text-sm mt-1">{macError}</p>}
     </div>
   );
