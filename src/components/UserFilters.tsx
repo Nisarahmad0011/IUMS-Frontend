@@ -38,13 +38,13 @@ export default function UserFilters({
         );
 
   return (
-    <div className="mb-6 flex justify-center mt-10 ml-100">
+    <div className="scale-80">
       <Popover className="relative">
         {() => (
           <>
             <Popover.Button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium 
-            text-white bg-blue-300 rounded-sm hover:bg-blue-200 shadow focus:outline-none">
-              <Filter className="w-4 h-4" />
+            text-blue-400 bg-white shadow-sm border border-gray-200 rounded-sm hover:bg-blue-200 focus:outline-none">
+              <Filter className="w-4 h-4 bg-blue-400 text-white rounded-full shadow-md p-1 scale-150" />
               Filters
             </Popover.Button>
 

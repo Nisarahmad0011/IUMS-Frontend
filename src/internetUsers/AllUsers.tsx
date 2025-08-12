@@ -5,17 +5,15 @@ import {
   Search, Users, Briefcase, Building2
 } from "lucide-react";
 import GradientSidebar from "../components/Sidebar";
-import { Combobox } from "@headlessui/react";
 import UserFilters from "../components/UserFilters";
-import type { InternetUser } from "../types/types";
+import type { InternetUser, ViolationType } from "../types/types";
 import { route } from "../config";
 
 const headers = [
-  "Phone", "Employment Type", "Directorate", "Deputy Ministry", "Position", "Device Limit", "Device Type", "Group Type",
-  "MAC Address", "Status", "Violations Count", "Violation Type", "Comment", "Actions"
+  "Name", "Last Name", "Username", "Directorate", "Position", "Group Type",
+  "Status", "Actions"
 ];
 
-const fixedHeaders = ["Name", "Last Name", "Username", "Email"];
 
 export default function InternetUsersList(): JSX.Element {
   const [users, setUsers] = useState<InternetUser[]>([]);
@@ -26,16 +24,20 @@ export default function InternetUsersList(): JSX.Element {
   const [editForm, setEditForm] = useState<Partial<InternetUser>>({});
   const [deputyMinistryOptions, setDeputyMinistryOptions] = useState<{ id: number; name: string }[]>([]);
   const [directorateOptions, setDirectorateOptions] = useState<{ id: number; name: string }[]>([]);
+  const [queryDirectorate,] = useState("");
   const [selectedDeputyMinistry, setSelectedDeputyMinistry] = useState<string>("");
   const [selectedDirectorate, setSelectedDirectorate] = useState<string>("");
+  const [, setSelectedDirectorateEdit] = useState<{ id: number; name: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [employmentTypes, setEmploymentTypes] = useState<{ id: number; name: string }[]>([]);
-  const [selectedDirectorateEdit, setSelectedDirectorateEdit] = useState<{ id: number; name: string } | null>(null);
-  const [queryDirectorate, setQueryDirectorate] = useState("");
-  const [selectedDeputyMinistryEdit, setSelectedDeputyMinistryEdit] = useState<{ id: number; name: string } | null>(null);
-  const [queryDeputyMinistryEdit, setQueryDeputyMinistryEdit] = useState("");
+  const [, setSelectedDeputyMinistryEdit] = useState<{ id: number; name: string } | null>(null);
+  const [queryDeputyMinistryEdit,] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [expanded, setExpanded] = useState(false);
+  const [deviceTypes, setDeviceTypes] = useState<{ id: number; name: string }[]>([]);
+  const [violationTypes, setViolationTypes] = useState<ViolationType[]>([]);
+  const [groups, setGroups] = useState<{ id: number; name: string }[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | number>("");
+
 
 
 
@@ -110,13 +112,54 @@ export default function InternetUsersList(): JSX.Element {
     fetchFilters();
   }, []);
 
+  useEffect(() => {
+    fetch(`${route}/violation`)
+      .then(res => res.json())
+      .then((res) => {
+        setViolationTypes(res.data || []); // فقط آرایه‌ی data را ست می‌کنیم
+      })
+      .catch(err => console.error("Error fetching violation types:", err));
+  }, []);
+
+
+  useEffect(() => {
+    async function fetchDeviceTypes() {
+      try {
+        const res = await axios.get(`${route}/device-types`);
+        setDeviceTypes(res.data);
+      } catch (err) {
+        console.error("Failed to fetch device types", err);
+      }
+    }
+    fetchDeviceTypes();
+  }, []);
+
+  useEffect(() => {
+    async function fetchGroups() {
+      try {
+        const res = await axios.get(`${route}/groups`);
+        if (Array.isArray(res.data.data)) {
+          setGroups(res.data.data);
+        } else if (Array.isArray(res.data)) {
+          setGroups(res.data);
+        } else {
+          console.error("Groups data format unexpected:", res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching groups:", error);
+      }
+    }
+
+    fetchGroups();
+  }, []);
+
 
   const handleEdit = (user: InternetUser) => {
     setSelectedUser(user);
     setEditForm({
       ...user,
       status: user.status || "active",
-      violations_count: user.violations_count || "0",
+      violations_count: user.violations_count || 0,
       comment: user.comment || "No comment"
     });
 
@@ -164,85 +207,84 @@ export default function InternetUsersList(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen flex bg-white 
-    shadow-md shadow-indigo-700">
+    <div className="min-h-screen flex bg-white shadow-md shadow-indigo-700">
       <div className="fixed top-0 left-0 bottom-0 w-64 border-r 
       border-gray-200 bg-white shadow-sm z-20">
         <GradientSidebar />
       </div>
       <main className="flex-1 ml-64 p-8 overflow-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
           {/* 🔵 Total Users */}
           <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white 
-        border border-blue-100 group">
+        border border-blue-100 group scale-80">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <User className="w-6 h-6 text-blue-400" />
-                <span className="text-blue-400 text-sm">Total Users</span>
+                <User className="w-6 h-6 text-white bg-blue-400 rounded-md p-1" />
+                <span className="text-blue-400 text-[11px]">Total Users</span>
               </div>
-              <div className="text-blue-400 text-xs uppercase tracking-wider">Summary</div>
+              <div className="text-white text-xs uppercase tracking-wider bg-blue-400 rounded-full p-2 scale-70">Summary</div>
             </div>
             <div className="text-4xl font-bold text-blue-400 text-center mt-10">{totalUsers}</div>
           </div>
           {/* 🟦 Active / Deactive */}
-          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group">
+          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group scale-80">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Users className="w-6 h-6 text-blue-400" />
-                <span className="text-blue-400 font-semibold text-sm">Active / Deactive</span>
+                <Users className="w-6 h-6 text-white bg-blue-400 rounded-md p-1" />
+                <span className="text-blue-400 text-[11px]">Active / Deactive</span>
               </div>
-              <div className="text-blue-400 text-xs uppercase tracking-wider">Status</div>
+              <div className="text-white text-xs uppercase tracking-wide bg-blue-400 rounded-full p-2 scale-70">Status</div>
             </div>
             <div className="space-y-1 text-blue-400">
               <div className="flex justify-between text-sm">
-                <span>Active</span>
-                <span className="font-bold">{activeUsers}</span>
+                <span className="text-green-400">Active</span>
+                <span className="font-bold text-white bg-green-400 rounded-md w-15 text-center p-1 scale-70">{activeUsers}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Deactive</span>
-                <span className="font-bold">{deactiveUsers}</span>
+                <span className="text-red-500">Deactive</span>
+                <span className="font-bold text-white bg-red-500  rounded-md text-center w-15 p-1 scale-70">{deactiveUsers}</span>
               </div>
             </div>
           </div>
           {/* 👔 Employment Type */}
-          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group">
+          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group scale-80">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Briefcase className="w-6 h-6 text-blue-400" />
-                <span className="text-blue-400 font-semibold text-sm">Employment Types</span>
+                <Briefcase className="w-6 h-6 text-white bg-blue-400 p-1 rounded-md" />
+                <span className="text-blue-400 text-[11px]">Employment Types</span>
               </div>
-              <div className="text-blue-400 text-xs uppercase tracking-wider">Type</div>
+              <div className="text-white text-xs uppercase tracking-wider bg-blue-400 rounded-full p-2 scale-70">Type</div>
             </div>
             <ul className="space-y-1 text-sm text-blue-400 max-h-32 overflow-auto pr-1">
               {Object.entries(employmentTypeCounts).map(([type, count]) => (
                 <li key={type} className="flex justify-between">
                   <span>{type}</span>
-                  <span className="font-bold">{count}</span>
+                  <span className="font-bold text-white bg-blue-400 w-10 text-center rounded-md text-xs p-1">{count}</span>
                 </li>
               ))}
             </ul>
           </div>
           {/* 🏛️ Deputy Ministry */}
-          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group">
+          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group scale-80">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Building2 className="w-6 h-6 text-blue-400" />
-                <span className="text-blue-400 font-semibold text-sm">Deputy Ministries</span>
+                <Building2 className="w-6 h-6 text-white bg-blue-400 rounded-md p-1" />
+                <span className="text-blue-400 text-[11px]">Deputy Ministries</span>
               </div>
-              <div className="text-blue-400 text-xs uppercase tracking-wider">Groups</div>
+              <div className="text-white text-xs uppercase tracking-wider bg-blue-400 rounded-full p-2 scale-70">Groups</div>
             </div>
             <ul className="space-y-1 text-sm text-blue-400 max-h-32 overflow-auto pr-1 text-[10px]">
               {Object.entries(deputyMinistryCounts).map(([name, count]) => (
                 <li key={name} className="flex justify-between">
                   <span>{name}</span>
-                  <span className="font-bold">{count}</span>
+                  <span className="text-white bg-blue-400 rounded-md p-1 w-10 text-center font-bold">{count}</span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="flex gap-4 mb-4 mt-5 justify-center items-center">
+        <div className="flex mb-4 mt-5 justify-center w-full">
           <UserFilters
             deputyMinistryOptions={deputyMinistryOptions
               .filter(dm => dm.id >= 1 && dm.id <= 5)
@@ -255,22 +297,25 @@ export default function InternetUsersList(): JSX.Element {
             selectedStatus={selectedStatus}
             setSelectedStatus={setSelectedStatus}
           />
-          <div className="relative w-full sm:w-[900px] mt-5">
+          <div className="relative w-full max-w-md mx-auto">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="w-5 h-5 rounded-full bg-blue-400 p-1 text-white scale-120 shadow-md shadow-gray-500" />
+            </div>
             <input
-              id="searchInput"
-              type="text"
+              type="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search users..."
-              className="w-80 px-4 py-2 pl-10 rounded-sm shadow-sm border border-blue-200 
-                    focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm 
-                    placeholder:text-blue-300 text-gray-700 
-                    bg-white"
-              autoComplete="on"
-              autoCorrect="on"
+              placeholder="Search..."
+              className="block w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300
+                   text-gray-900 placeholder-gray-400 focus:outline-none
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                   transition duration-150 ease-in-out sm:text-sm border-r-blue-300 rounded-r-full 
+                   border-l-blue-300 border-l-2 border-r-2 rounded-l-full"
+              autoComplete="off"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
           </div>
+
+
         </div>
 
         {loading ? (
@@ -283,71 +328,21 @@ export default function InternetUsersList(): JSX.Element {
           <div className="overflow-x-auto rounded-sm 
           shadow-lg bg-white border 
           border-gray-200 max-w-full">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              aria-expanded={expanded}
-              className="
-                relative
-                w-full
-                px-6 py-2
-                text-sm font-semibold
-                text-white
-                bg-gradient-to-r from-blue-300 via-blue-200 to-gray-100
-                rounded-sm
-                overflow-hidden
-                shadow-lg
-                hover:from-blue-400 hover:via-blue-200 hover:to-gray-200
-                focus:outline-none focus:ring-opacity-50
-                transition
-                duration-300
-                ease-in-out
-              "
-            >
-              {/* متن دکمه */}
-              {expanded ? "⯅ Click To Collapse ⯅" : "⯆ Click To Expand ⯆"}
-
-              {/* خط شمشیر متحرک */}
-              <span className="
-                absolute top-0 left-0 w-full h-full pointer-events-none
-                before:content-['']
-                before:absolute before:top-0 before:left-[-100%] before:w-[30%] before:h-full
-                before:bg-white before:opacity-20 before:transform before:-skew-x-12
-                before:transition-transform before:duration-500 before:ease-in-out
-                hover:before:left-full
-              "></span>
-            </button>
-
-
-            <div className="overflow-x-auto rounded-sm shadow-lg bg-white border border-white max-w-full scrollbar-custom">
+            <div className="overflow-x-auto rounded-sm shadow-md bg-white border border-white max-w-full scrollbar-custom">
               <table className="table-auto w-full text-left text-sm">
                 {/* Table Head */}
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs uppercase 
               tracking-wider select-none rounded-t-xl">
-                    {fixedHeaders.map((header) => (
+
+                    {headers.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 border-r bg-blue-300 text-[10px] font-semibold"
-                        style={{ textShadow: "0 1px 1px rgba(0,0,0,0.15)" }}
+                        className="px-3 py-2 border-r border-white last:border-r-0 bg-gray-100 text-blue-400 text-[8px] font-semibold"
                       >
                         {header}
                       </th>
-
                     ))}
-
-                    {expanded && (
-                      <>
-                        {headers.map((header) => (
-                          <th
-                            key={header}
-                            className="px-3 py-2 border-r last:border-r-0 bg-blue-300 text-[10px] font-semibold"
-                            style={{ textShadow: "0 1px 1px rgba(0,0,0,0.15)" }}
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </>
-                    )}
                   </tr>
                 </thead>
 
@@ -368,16 +363,16 @@ export default function InternetUsersList(): JSX.Element {
                       (user.violation_type && user.violation_type.toLowerCase().includes(searchTerm.toLowerCase())) ||
                       String(user.violations_count).toLowerCase().includes(searchTerm.toLowerCase()))
                     .map((user, idx) => {
-                      const isRedCard = user.violations_count === "2";
-                      const isYellowCard = user.violations_count === "1";
+                      const isRedCard = user.violations_count === 2;
+                      const isYellowCard = user.violations_count === 1;
 
                       return (
                         <tr
                           key={user.id}
                           className={`transition-colors duration-200 ${isRedCard
-                            ? "bg-red-100"
+                            ? "bg-red-50"
                             : idx % 2 === 0
-                              ? "bg-gray-100"
+                              ? "bg-gray-50"
                               : "bg-white"
                             } hover:bg-blue-100`}
                         >
@@ -395,68 +390,46 @@ export default function InternetUsersList(): JSX.Element {
                           {/* Username */}
                           <td className="px-3 py-2 text-gray-700 text-[10px]">{user.username}</td>
 
-                          {/* email */}
-                          <td className="px-3 py-2 text-gray-700 text-[10px]">{user.email}</td>
-                          {expanded && (
-                            <>
-                              {/* Phone */}
-                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.phone}</td>
 
-                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.employment_type || "-"}</td>
 
-                              {/* Directorate */}
-                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.directorate}</td>
 
-                              {/* Deputy Ministry */}
-                              <td className="px-3 py-2  text-gray-700 text-[9px]">{user.deputy}</td>
+                          {/* Directorate */}
+                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.directorate}</td>
 
-                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.position}</td>
 
-                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.device_limit}</td>
 
-                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.device_type}</td>
+                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.position}</td>
 
-                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.groups}</td>
 
-                              <td className="px-3 py-2 text-gray-700 text-[8px]">{user.mac_address}</td>
 
-                              {/* Status */}
-                              <td className="px-3 py-2 text-gray-700 text-[10px]">
-                                {user.status === 1 ? "active" : user.status === 0 ? "deactive" : "-"}
-                              </td>
+                          <td className="px-3 py-2 text-gray-700 text-[8px]">{user.groups}</td>
 
-                              {/* Violations */}
-                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violations_count}</td>
 
-                              {/* Violation type */}
-                              <td className="px-3 py-2 text-gray-700 text-[10px]">{user.violation_type}</td>
+                          {/* Status */}
+                          <td className={`px-3 py-2 text-[10px] ${user.status === 1 ? "text-green-500" : user.status === 0 ? "text-red-500" : "text-gray-700"}`}
+                          >
+                            {user.status === 1 ? "active" : user.status === 0 ? "deactive" : "-"}
+                          </td>
 
-                              {/* Comment */}
-                              <td className="px-3 py-2 text-gray-700 text-[10px] truncate max-w-[120px]">
-                                {user.comment || "-"}
-                              </td>
-
-                              {/* Actions */}
-                              <td className="px-3 py-2 text-blue-400 text-center">
-                                <div className="flex justify-center gap-2">
-                                  <button
-                                    onClick={() => handleEdit(user)}
-                                    className="hover:text-blue-100"
-                                    title="Edit"
-                                  >
-                                    <Edit className="w-5 h-5 hover:text-blue-300" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(user.id)}
-                                    className="hover:text-blue-100"
-                                    title="Delete"
-                                  >
-                                    <Trash className="w-5 h-5 hover:text-blue-300" />
-                                  </button>
-                                </div>
-                              </td>
-                            </>
-                          )}
+                          {/* Actions */}
+                          <td className="px-3 py-2 text-blue-400 text-center">
+                            <div className="flex justify-center gap-2">
+                              <button
+                                onClick={() => handleEdit(user)}
+                                className="hover:text-blue-100"
+                                title="Edit"
+                              >
+                                <Edit className="w-5 h-5 hover:text-blue-300 scale-90 text-white rounded-full bg-green-400 p-1" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(user.id)}
+                                className="hover:text-blue-100"
+                                title="Delete"
+                              >
+                                <Trash className="w-5 h-5 hover:text-blue-300 scale-90 text-white rounded-full bg-red-300 p-1" />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}
@@ -490,7 +463,8 @@ export default function InternetUsersList(): JSX.Element {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {Object.keys(editForm).map((key) =>
                   key !== "status" && key !== "violations" && key !== "comment" && key !== "employment_type"
-                    && key !== "directorate" && key !== "deputyMinistry" && key !== "count" && key !== "id" ? (
+                    && key !== "directorate" && key !== "deputyMinistry" && key !== "count" && key !== "id"
+                    && key !== "device_type" && key !== "mac_address" && key !== "violation_type" && key !== "deputy" && key !== "groups" ? (
                     <div key={key}>
                       <label className="block text-sm font-medium text-gray-700 capitalize">{key.replace("_", " ")}</label>
                       <input
@@ -506,82 +480,112 @@ export default function InternetUsersList(): JSX.Element {
 
                 {/* directorate type */}
 
-                <div className="">
-                  <label className="block text-sm font-medium text-gray-700">Directorate</label>
-                  <Combobox
-                    value={selectedDirectorateEdit}
-                    onChange={(value) => {
-                      setSelectedDirectorateEdit(value);
-                      setEditForm((prev) => ({ ...prev, directorate: value?.name || "" }));
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Directorate</label>
+                  <select
+                    name="directorate"
+                    value={editForm.directorate || ""}
+                    onChange={(e) => {
+                      const selectedName = e.target.value;
+                      setEditForm(prev => ({ ...prev, directorate: selectedName }));
+
+                      const selectedObj = directorateOptions.find(dir => dir.name === selectedName) || null;
+                      setSelectedDirectorateEdit(selectedObj);
                     }}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
-                    <div className="relative mt-1">
-                      <Combobox.Input
-                        className="w-full border border-gray-300 rounded-md py-2 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        displayValue={(dir: { name: string }) => dir?.name || ""}
-                        onChange={(e) => setQueryDirectorate(e.target.value)}
-                        placeholder="🔍 Search..."
-                      />
-                      <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg border border-gray-200 z-50">
-                        {filteredDirectorates.length === 0 ? (
-                          <div className="px-4 py-2 text-gray-500">No results found.</div>
-                        ) : (
-                          filteredDirectorates.map((dir) => (
-                            <Combobox.Option
-                              key={dir.id}
-                              value={dir}
-                              className={({ active }) =>
-                                `cursor-pointer select-none px-4 py-2 ${active ? "bg-blue-500 text-white" : "text-gray-800"
-                                }`
-                              }
-                            >
-                              {dir.name}
-                            </Combobox.Option>
-                          ))
-                        )}
-                      </Combobox.Options>
-                    </div>
-                  </Combobox>
+                    <option value="">Select Directorate</option>
+                    {directorateOptions
+                      .filter(dir => dir.id > 5)
+                      .map((dir) => (
+                        <option key={dir.id} value={dir.name}>
+                          {dir.name}
+                        </option>
+                      ))
+                    }
+                  </select>
                 </div>
 
-                {/* deputy ministry  */}
+                {/* mac address */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Deputy Ministry</label>
-                  <Combobox
-                    value={selectedDeputyMinistryEdit}
-                    onChange={(value) => {
-                      setSelectedDeputyMinistryEdit(value);
-                      setEditForm((prev) => ({ ...prev, deputyMinistry: value?.name || "" }));
-                    }}
-                  >
-                    <div className="relative mt-1">
-                      <Combobox.Input
-                        className="w-full border border-gray-300 rounded-md py-2 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        displayValue={(dm: { name: string }) => dm?.name || ""}
-                        onChange={(e) => setQueryDeputyMinistryEdit(e.target.value)}
-                        placeholder="🔍 Search..."
-                      />
-                      <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg border border-gray-200 z-50">
-                        {filteredDeputyMinistriesEdit.length === 0 ? (
-                          <div className="px-4 py-2 text-gray-500">No results found.</div>
-                        ) : (
-                          filteredDeputyMinistriesEdit.map((dm) => (
-                            <Combobox.Option
-                              key={dm.id}
-                              value={dm}
-                              className={({ active }) =>
-                                `cursor-pointer select-none px-4 py-2 ${active ? "bg-blue-500 text-white" : "text-gray-800"
-                                }`
-                              }
-                            >
-                              {dm.name}
-                            </Combobox.Option>
-                          ))
-                        )}
-                      </Combobox.Options>
-                    </div>
-                  </Combobox>
+                  <label className="block text-sm font-medium text-gray-700 capitalize">Mac Address</label>
+                  <input
+                    type="text"
+                    name={"mac_address"}
+                    value={editForm.mac_address || ""}
+                    onChange={handleEditChange}
+                    className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
                 </div>
+
+                {/* violation type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Violation Type</label>
+                  <select
+                    name="violation_type_id"
+                    value={editForm.violation_type || ""}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        violation_type_id: Number(e.target.value),
+                      }))
+                    }
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    <option value="">{editForm.violation_type}</option>
+                    {violationTypes.map((vt) => (
+                      <option key={vt.id} value={vt.id}>
+                        {vt.name}
+                      </option>
+                    ))}
+                  </select>
+
+                </div>
+
+
+                {/* Deputy Ministry */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Deputy Ministry
+                  </label>
+                  <select
+                    className="block w-full rounded-md border border-blue-200 shadow-sm h-9 text-sm p-2"
+                    value={selectedDeputyMinistry}
+                    onChange={(e) => setSelectedDeputyMinistry(e.target.value)}
+                  >
+                    <option value="">{editForm.deputy}</option>
+                    {deputyMinistryOptions
+                      .filter(dep => dep.id >= 1 && dep.id <= 5) // فقط id های 1 تا 5
+                      .map((dep) => (
+                        <option key={dep.id} value={dep.name}>
+                          {dep.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* groups */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Groups</label>
+                  <select
+                    name="group_id"
+                    value={editForm.groups || selectedGroupId || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEditForm((prev) => ({ ...prev, group_id: val }));
+                      setSelectedGroupId(val);
+                    }}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    <option value="">{editForm.groups}</option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
 
                 {/* Employment Type */}
                 <div>
@@ -612,22 +616,26 @@ export default function InternetUsersList(): JSX.Element {
 
                 {/* Device Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Device Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Device Type</label>
                   <select
-                    name="device_type"
-                    value={editForm.device_type}
-                    onChange={handleEditChange}
-                    className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none 
-                  focus:ring-2 focus:ring-blue-400"
+                    name="device_type_id"
+                    value={String(editForm.device_type)}
+                    onChange={(e) => {
+                      const selectedId = Number(e.target.value);
+                      setEditForm(prev => ({ ...prev, device_type_id: selectedId }));
+                    }}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
-                    <option value="">Select Device Type</option>
-                    {employmentTypes.map((type) => (
-                      <option key={type.id} value={type.name}>
-                        {type.name}
+                    <option value="">{editForm.device_type}</option>
+                    {deviceTypes.map((dt) => (
+                      <option key={dt.id} value={String(dt.id)}>
+                        {dt.name}
                       </option>
                     ))}
                   </select>
+
                 </div>
+
 
                 {/* Status */}
                 <div>
