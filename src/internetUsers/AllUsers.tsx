@@ -2,12 +2,15 @@ import { useEffect, useState, type JSX } from "react";
 import axios from "axios";
 import {
   User, Edit, Trash,
-  Search, Users, Briefcase, Building2
+  Search, Users, Briefcase
 } from "lucide-react";
 import GradientSidebar from "../components/Sidebar";
 import UserFilters from "../components/UserFilters";
 import type { InternetUser, ViolationType } from "../types/types";
 import { route } from "../config";
+import DeputyMinistriesChart from "../components/deputyMinistrySummaryChart";
+import GroupTypePieChart from "../components/groupTypePieChart";
+import ScrollToTopButton from "../components/scrollToTop";
 
 const headers = [
   "Name", "Last Name", "Username", "Directorate", "Position", "Group Type",
@@ -208,81 +211,79 @@ export default function InternetUsersList(): JSX.Element {
 
   return (
     <div className="min-h-screen flex bg-white shadow-md shadow-indigo-700">
+      <ScrollToTopButton />
       <div className="fixed top-0 left-0 bottom-0 w-64 border-r 
       border-gray-200 bg-white shadow-sm z-20">
         <GradientSidebar />
       </div>
       <main className="flex-1 ml-64 p-8 overflow-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1 bg-gradient-to-b 
+        from-blue-400 via-blue-200 to-white rounded-md">
           {/* 🔵 Total Users */}
-          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white 
+          <div className="relative overflow-hidden rounded-md p-6 shadow-md shadow-white bg-gradient-to-b from-blue-500 via-blue-300 to-blue-200 
         border border-blue-100 group scale-80">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <User className="w-6 h-6 text-white bg-blue-400 rounded-md p-1" />
-                <span className="text-blue-400 text-[11px]">Total Users</span>
+                <span className="text-gray-100 text-[11px]">Total Users</span>
               </div>
               <div className="text-white text-xs uppercase tracking-wider bg-blue-400 rounded-full p-2 scale-70">Summary</div>
             </div>
-            <div className="text-4xl font-bold text-blue-400 text-center mt-10">{totalUsers}</div>
+            <div className="text-4xl font-bold text-gray-100 text-center mt-25">{totalUsers}</div>
           </div>
           {/* 🟦 Active / Deactive */}
-          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group scale-80">
+          <div className="relative overflow-hidden rounded-md p-6 shadow-md shadow-white border border-blue-100 group scale-80 bg-gradient-to-b from-blue-500 via-blue-300 to-blue-200">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Users className="w-6 h-6 text-white bg-blue-400 rounded-md p-1" />
-                <span className="text-blue-400 text-[11px]">Active / Deactive</span>
+                <span className="text-gray-100 text-[11px]">Active / Deactive</span>
               </div>
               <div className="text-white text-xs uppercase tracking-wide bg-blue-400 rounded-full p-2 scale-70">Status</div>
             </div>
-            <div className="space-y-1 text-blue-400">
+            <div className="space-y-1 text-blue-400 mt-25">
               <div className="flex justify-between text-sm">
-                <span className="text-green-400">Active</span>
-                <span className="font-bold text-white bg-green-400 rounded-md w-15 text-center p-1 scale-70">{activeUsers}</span>
+                <span className="text-gray-100">Active</span>
+                <span className="font-bold text-green-400 bg-blue-400 rounded-md w-15 text-center p-1 scale-70">{activeUsers}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-red-500">Deactive</span>
-                <span className="font-bold text-white bg-red-500  rounded-md text-center w-15 p-1 scale-70">{deactiveUsers}</span>
+                <span className="text-gray-100">Deactive</span>
+                <span className="font-bold text-red-600 bg-blue-400 rounded-md text-center w-15 p-1 scale-70">{deactiveUsers}</span>
               </div>
             </div>
           </div>
           {/* 👔 Employment Type */}
-          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group scale-80">
+          <div className="relative overflow-hidden rounded-md p-6 shadow-md shadow-white bg-gradient-to-b from-blue-500 via-blue-300 to-blue-200 border border-blue-100 group scale-80">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Briefcase className="w-6 h-6 text-white bg-blue-400 p-1 rounded-md" />
-                <span className="text-blue-400 text-[11px]">Employment Types</span>
+                <span className="text-gray-100 text-[11px]">Employment Types</span>
               </div>
               <div className="text-white text-xs uppercase tracking-wider bg-blue-400 rounded-full p-2 scale-70">Type</div>
             </div>
-            <ul className="space-y-1 text-sm text-blue-400 max-h-32 overflow-auto pr-1">
+            <ul className="space-y-1 text-sm text-blue-400 max-h-32 overflow-auto pr-1 mt-25">
               {Object.entries(employmentTypeCounts).map(([type, count]) => (
                 <li key={type} className="flex justify-between">
-                  <span>{type}</span>
-                  <span className="font-bold text-white bg-blue-400 w-10 text-center rounded-md text-xs p-1">{count}</span>
+                  <span className="text-gray-100">{type}</span>
+                  <span className="font-bold bg-blue-400 w-10 text-center rounded-md text-xs p-1 text-gray-100">{count}</span>
                 </li>
               ))}
             </ul>
+
           </div>
-          {/* 🏛️ Deputy Ministry */}
-          <div className="relative overflow-hidden rounded-md p-6 shadow-sm bg-white border border-blue-100 group scale-80">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Building2 className="w-6 h-6 text-white bg-blue-400 rounded-md p-1" />
-                <span className="text-blue-400 text-[11px]">Deputy Ministries</span>
-              </div>
-              <div className="text-white text-xs uppercase tracking-wider bg-blue-400 rounded-full p-2 scale-70">Groups</div>
+
+          {/* Group Pie Chart */}
+            <div className="relative overflow-hidden rounded-sm p-1 shadow-md shadow-white bg-gradient-to-b from-blue-500 via-blue-300 to-blue-200 border 
+            border-blue-100 group scale-80 pb-5">
+              <GroupTypePieChart />
             </div>
-            <ul className="space-y-1 text-sm text-blue-400 max-h-32 overflow-auto pr-1 text-[10px]">
-              {Object.entries(deputyMinistryCounts).map(([name, count]) => (
-                <li key={name} className="flex justify-between">
-                  <span>{name}</span>
-                  <span className="text-white bg-blue-400 rounded-md p-1 w-10 text-center font-bold">{count}</span>
-                </li>
-              ))}
-            </ul>
+
+            {/* deputy Ministry Chart */}
+            <div className="relative overflow-hidden rounded-sm p-1 shadow-sm bg-gradient-to-b from-blue-300 via-blue-200 to-blue-100 
+          group scale-80 pb-5 col-span-4 text-center ">
+              <DeputyMinistriesChart deputyMinistryCounts={deputyMinistryCounts} />
           </div>
         </div>
+
 
         <div className="flex mb-4 mt-5 justify-center w-full">
           <UserFilters
