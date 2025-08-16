@@ -42,8 +42,6 @@ export default function InternetUsersList(): JSX.Element {
   const [selectedGroupId, setSelectedGroupId] = useState<string | number>("");
 
 
-
-
   const totalUsers = users.length;
   const activeUsers = users.filter((user) => user.status === 1).length;
   const deactiveUsers = users.filter((user) => user.status === 0).length;
@@ -88,7 +86,7 @@ export default function InternetUsersList(): JSX.Element {
         const response = await axios.get<InternetUser[]>(`${route}/internet`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        console.log("API Response:", response.data); // Add this line
+        console.log("API Response:", response.data);
         setUsers(response.data);
       } catch (err) {
         setError("Failed to fetch users. Please try again later.");
@@ -101,10 +99,26 @@ export default function InternetUsersList(): JSX.Element {
 
     async function fetchFilters() {
       try {
+        const { token } = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
         const [depRes, dirRes, empTypeRes] = await Promise.all([
-          axios.get(`${route}/directorate`),
-          axios.get(`${route}/directorate`),
-          axios.get(`${route}/employment-type`),
+          axios.get(`${route}/directorate`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }
+          }),
+          axios.get(`${route}/directorate`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }
+          }),
+          axios.get(`${route}/employment-type`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }
+          }),
         ]);
 
 
@@ -119,7 +133,13 @@ export default function InternetUsersList(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    fetch(`${route}/violation`)
+    const { token } = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+    fetch(`${route}/violation`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
       .then(res => res.json())
       .then((res) => {
         setViolationTypes(res.data || []); // فقط آرایه‌ی data را ست می‌کنیم
@@ -131,7 +151,13 @@ export default function InternetUsersList(): JSX.Element {
   useEffect(() => {
     async function fetchDeviceTypes() {
       try {
-        const res = await axios.get(`${route}/device-types`);
+        const { token } = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+        const res = await axios.get(`${route}/device-types`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          }
+        });
         setDeviceTypes(res.data);
       } catch (err) {
         console.error("Failed to fetch device types", err);
@@ -143,7 +169,13 @@ export default function InternetUsersList(): JSX.Element {
   useEffect(() => {
     async function fetchGroups() {
       try {
-        const res = await axios.get(`${route}/groups`);
+        const { token } = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+        const res = await axios.get(`${route}/groups`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
         if (Array.isArray(res.data.data)) {
           setGroups(res.data.data);
         } else if (Array.isArray(res.data)) {
@@ -184,9 +216,15 @@ export default function InternetUsersList(): JSX.Element {
   const handleUpdate = async () => {
     if (!selectedUser) return;
     try {
+      const { token } = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
       const response = await axios.put(
         `${route}/internet/${selectedUser.id}`,
-        editForm
+        editForm, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
+      }
       );
       setUsers((prev) =>
         prev.map((u) => (u.id === selectedUser.id ? response.data : u))
