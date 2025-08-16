@@ -68,7 +68,7 @@ export default function GradientSidebar(): JSX.Element {
             <Users className="w-5 h-5 bg-blue-400 text-white rounded-md p-1" />
             All Users
           </div>
-          {userOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4 text-blue-400 scale-80" />}
+          {userOpen ? <ChevronUp className="w-4 h-4 text-blue-400" /> : <ChevronDown className="w-4 h-4 text-blue-400 scale-80" />}
         </motion.button>
 
         {userOpen && (
@@ -101,38 +101,44 @@ export default function GradientSidebar(): JSX.Element {
             <AlertOctagon className="w-5 h-5 bg-blue-400 text-white rounded-md p-1" />
             Violations
           </div>
-          {violationOpen ? <ChevronUp className="w-4 h-4 scale-80" /> : <ChevronDown className="w-4 h-4 text-blue-400 scale-80" />}
+          {violationOpen ? <ChevronUp className="w-4 h-4 scale-80 text-blue-400" /> : <ChevronDown className="w-4 h-4 text-blue-400 scale-80" />}
         </motion.button>
 
         {violationOpen && (
           <div className="ml-6 flex flex-col gap-1 text-blue-400 scale-80">
+               {currentUser?.user.role !== "viewer" && (
             <button
               onClick={() => navigate("/addviolation")}
-              className="hover:text-blue-100 transition py-1 text-left scale-80"
+              className="hover:text-white transition py-1 text-left scale-80"
             >
               ➤ Violation Form
             </button>
+               )}
+            {currentUser?.user.role !== "viewer" && (
             <button
               onClick={() => navigate("/add-violation-type")}
-              className="hover:text-blue-100 transition py-1 text-left scale-80"
+              className="hover:text-white transition py-1 text-left scale-80"
             >
               ➤ Add Violation Type
             </button>
+             )}
             <button
               onClick={() => navigate("/all-violation-types")}
-              className="hover:text-blue-100 transition py-1 text-left scale-80"
+              className="hover:text-white transition py-1 text-left scale-80"
             >
               ➤ All Violation Types
             </button>
+            {currentUser?.user.role !== "viewer" && (
             <button
               onClick={() => navigate("/addviolationonauser")}
-              className="hover:text-blue-100 transition py-1 text-left scale-80"
+              className="hover:text-white transition py-1 text-left scale-80"
             >
               ➤ Add Violation On A User
             </button>
+            )}
             <button
               onClick={() => navigate("/all-violations-from-users")}
-              className="hover:text-blue-100 transition py-1 text-left scale-80"
+              className="hover:text-white transition py-1 text-left scale-80"
             >
               ➤ All Violations From Users
             </button>
@@ -160,13 +166,13 @@ export default function GradientSidebar(): JSX.Element {
               <div className="ml-6 flex flex-col gap-1 text-blue-400 scale-80">
                 <button
                   onClick={() => navigate("/all-system-users")}
-                  className="hover:text-blue-100 transition py-1 text-left scale-80"
+                  className="hover:text-white transition py-1 text-left scale-80"
                 >
                   ➤ View All
                 </button>
                 <button
                   onClick={() => navigate("/register")}
-                  className="hover:text-blue-100 transition py-1 text-left text-blue-400 scale-80"
+                  className="hover:text-white transition py-1 text-left text-blue-400 scale-80"
                 >
                   ➤ Add New
                 </button>
