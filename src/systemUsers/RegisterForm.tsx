@@ -42,7 +42,6 @@ export default function RegisterForm() {
       }
     }
 
-    // چک یکسان بودن رمز عبور و تایید آن
     if (name === "password_confirmation") {
       if (value !== form.password) {
         setPasswordError("Password and Confirm password did not match!");
@@ -51,7 +50,6 @@ export default function RegisterForm() {
       }
     }
 
-    // وقتی پسورد تغییر می‌کند، بررسی کن تاییدش هنوز باهاش یکی هست یا نه
     if (name === "password" && form.password_confirmation && form.password_confirmation !== value) {
       setPasswordError("");
     }
@@ -93,7 +91,7 @@ export default function RegisterForm() {
         email: "",
         password: "",
         password_confirmation: "",
-        isAdmin: false,
+        role:"User"
       });
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed.");
@@ -129,7 +127,7 @@ export default function RegisterForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
-          <User className="absolute top-3 left-3 text-gray-400" size={20} />
+          <User className="absolute top-3 left-3 text-white bg-blue-300  rounded-full p-1" size={20} />
           <input
             name="name"
             value={form.name}
@@ -141,7 +139,7 @@ export default function RegisterForm() {
         </div>
 
         <div className="relative">
-          <Mail className="absolute top-3 left-3 text-gray-400" size={20} />
+          <Mail className="absolute top-3 left-3 text-white bg-blue-300 rounded-full p-1" size={20} />
           <input
             name="email"
             value={form.email}
@@ -155,7 +153,7 @@ export default function RegisterForm() {
         </div>
 
         <div className="relative">
-          <Lock className="absolute top-3 left-3 text-gray-400" size={20} />
+          <Lock className="absolute top-3 left-3 text-white bg-blue-300 rounded-full p-1" size={20} />
           <input
             name="password"
             value={form.password}
@@ -168,7 +166,7 @@ export default function RegisterForm() {
         </div>
 
         <div className="relative">
-          <Lock className="absolute top-3 left-3 text-gray-400" size={20} />
+          <Lock className="absolute top-3 left-3 text-white bg-blue-300 rounded-full p-1" size={20} />
           <input
             name="password_confirmation"
             value={form.password_confirmation}
